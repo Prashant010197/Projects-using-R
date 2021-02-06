@@ -1,0 +1,88 @@
+---
+title: "Testing the psychological phenomenon Stroop effect"
+output: html_notebook
+---
+
+Some information about the stroop effect
+Background Information
+
+In a Stroop task, participants are presented with a list of words, with each word displayed in a color of ink. The participant’s task is to say out loud the color of the ink in which the word is printed. The task has two conditions: a congruent words condition, and an incongruent words condition. In the congruent words condition, the words being displayed are color words whose names match the colors in which they are printed: for example RED, BLUE. In the incongruent words condition, the words displayed are color words whose names do not match the colors in which they are printed: for example PURPLE, ORANGE. In each case, we measure the time it takes to name the ink colors in equally-sized lists. Each participant will go through and record a time from each condition.
+
+Our investigation will involve trying to find if the sample means for Congruent data and Incongruent data are significantly different from one another and if there is something behind the scenes that is causing this difference to occur.
+
+Our dependent variable is the reaction time or time it took for the participant to say out loud the colour of the ink correctly while the independent variable is the type of condition or test applied, whether congruent or incongruent.
+
+Null Hypothesis: There is no change in the performance of individuals when taking congruent and incongruent stroop effect test.
+or 
+sample mean for congruent test = sample mean for incongruent test
+
+
+Alternate Hypothesis: The performances of individuals when taking congruent and incongruent tests differs significantly, so much so that the performance difference cannot be attributed to random sampling 
+or
+sample mean for congruent test not equal to sample mean for congruent test
+
+```{r}
+library(readxl)
+stroopdata <- read_excel("stroopdata.xlsx")
+View(stroopdata)
+attach(stroopdata)
+```
+
+Now that we have imported and attached the data, we can move on with finding some exploratory analysis pertinent to our case.
+
+
+```{r}
+str(stroopdata)
+```
+
+
+```{r}
+x<-mean(Congruent)
+y<-mean(Incongruent)
+sprintf("The mean for congruent test performances is %s",x)
+sprintf("The mean for incongruent test performances is %s",y)
+```
+```{r}
+sc<-sd(Congruent)
+si<-sd(Incongruent)
+sprintf("The standard deviation for congruent test performances sample is %s",sc)
+sprintf("The standard deviation for incongruent test performances sample is %s",si)
+```
+
+Some Univariate plots will help us see the distribution of the two samples
+
+```{r}
+boxplot(Congruent, main="Box Plot for Congruent test reaction times", ylab="Reaction Times",las=1)
+```
+```{r}
+hist(Congruent, main="Probability density function for Congruent test", breaks = seq(5,25,2), xlab = "congruent test reaction times",probability = TRUE)
+lines(density(Congruent))
+```
+Congruent reaction times do not have any outliers present. The data is approximately normal distribution.
+
+Now, for incongruent test
+```{r}
+boxplot(Incongruent, main="Box Plot for Incongruent test reaction times", ylab="Reaction Times",las=1)
+```
+```{r}
+hist(Incongruent, main="Probability density function for Incongruent test", breaks = seq(10,40,5), xlab = "Incongruent test reaction times",probability = TRUE)
+lines(density(Incongruent))
+```
+The Incongruent test reaction time has outliers in the distribution and so the PDF is not normal. We could remove the outliers, but standard error would increase with decrease in number of data points in the sample. Let's keep the outliers. Nobody is going to read this anyway.
+
+Moving to Hypothesis testing, we will use t-test as it allows us to work without population parameters.
+
+We need sample means, sample size, standard deviation for sample and standard error. Since sample sizes for both tests are equal, we do not calculate pooled variance and corrected standard error.
+
+```{r}
+se<-sqrt(((sc^2)+(si^2))/24)
+se
+```
+
+Now calculating the t-statistic
+
+```{r}
+t.test(x=Congruent, y=Incongruent, alternative = "two.sided", mu=0, var.equal = FALSE, conf.level = 0.95)
+```
+
+Through the Welch two sample t-test, we find evidence to suggest that there is statistically significant difference between the two means and the samples do not come from the same population and hence we reject the null hypothesis.
